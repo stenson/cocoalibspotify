@@ -106,7 +106,7 @@ static void connection_error(sp_session *session, sp_error errorCode) {
 	@autoreleasepool {
 		
 		sp_connectionstate newState = sp_session_connectionstate(session);
-		NSError *error = [NSError spotifyErrorWithCode:errorCode];
+		NSError *error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
 			sess.connectionState = newState;
@@ -127,7 +127,7 @@ static void logged_in(sp_session *session, sp_error errorCode) {
 	@autoreleasepool {
 		
 		sp_connectionstate newState = sp_session_connectionstate(session);
-		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
 			sess.connectionState = newState;
@@ -135,7 +135,7 @@ static void logged_in(sp_session *session, sp_error errorCode) {
 			if (error != nil) {
 				[[NSNotificationCenter defaultCenter] postNotificationName:SPSessionLoginDidFailNotification
 																	object:sess
-																  userInfo:[NSDictionary dictionaryWithObject:[NSError spotifyErrorWithCode:errorCode]
+																  userInfo:[NSDictionary dictionaryWithObject:[SPErrorExtensions spotifyErrorWithCode:errorCode]
 																									   forKey:SPSessionLoginDidFailErrorKey]];
 				
 				if ([sess.delegate respondsToSelector:@selector(session:didFailToLoginWithError:)]) {
@@ -386,7 +386,7 @@ static void streaming_error(sp_session *session, sp_error errorCode) {
 	
 	@autoreleasepool {
 		
-		NSError *error = [NSError spotifyErrorWithCode:errorCode];
+		NSError *error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
 			if ([[sess playbackDelegate] respondsToSelector:@selector(session:didEncounterStreamingError:)]) {
@@ -443,7 +443,7 @@ static void offline_status_updated(sp_session *session) {
 static void offline_error(sp_session *session, sp_error error) {
 	
 	SPSession *sess = (__bridge SPSession *)sp_session_userdata(session);
-	NSError *err = [NSError spotifyErrorWithCode:error];
+	NSError *err = [SPErrorExtensions spotifyErrorWithCode:error];
 	
 	dispatch_async(dispatch_get_main_queue(), ^{
 		sess.offlineSyncError = err;
@@ -491,7 +491,7 @@ static void scrobble_error(sp_session *session, sp_error error) {
 	
 	@autoreleasepool {
 		
-		NSError *err = [NSError spotifyErrorWithCode:error];
+		NSError *err = [SPErrorExtensions spotifyErrorWithCode:error];
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
 			
@@ -540,7 +540,7 @@ static void show_signup_error_page(sp_session *session, sp_signup_page page, sp_
 	@autoreleasepool {
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[[SPLoginViewController loginControllerForSession:sess] handleShowSignupErrorPage:page
-																						error:[NSError spotifyErrorWithCode:error]];
+																						error:[SPErrorExtensions spotifyErrorWithCode:error]];
 		});
 	}
 }
@@ -765,10 +765,10 @@ static SPSession *sharedSession;
 
 		if (appKey == nil || [aUserAgent length] == 0) {
 			if (error && appKey == nil)
-				*error = [NSError spotifyErrorWithCode:SP_ERROR_BAD_APPLICATION_KEY];
+				*error = [SPErrorExtensions spotifyErrorWithCode:SP_ERROR_BAD_APPLICATION_KEY];
 		
 			if (error && [aUserAgent length] == 0)
-				*error = [NSError spotifyErrorWithCode:SP_ERROR_BAD_USER_AGENT];
+				*error = [SPErrorExtensions spotifyErrorWithCode:SP_ERROR_BAD_USER_AGENT];
 
 			return nil;
 		}
@@ -859,7 +859,7 @@ static SPSession *sharedSession;
 			sp_error createErrorCode = sp_session_create(&config, &_session);
 			if (createErrorCode != SP_ERROR_OK) {
 				self.session = NULL;
-				creationError = [NSError spotifyErrorWithCode:createErrorCode];
+				creationError = [SPErrorExtensions spotifyErrorWithCode:createErrorCode];
 			} else {
 				_cachedIsUsingNormalization = sp_session_get_volume_normalization(_session);
 				[self prodSessionForcefully];
@@ -1116,7 +1116,7 @@ static SPSession *sharedSession;
 		sp_error errorCode = sp_session_set_scrobbling(self.session, service, state);
 		NSError *error = nil;
 		if (errorCode != SP_ERROR_OK)
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		dispatch_async(dispatch_get_main_queue(), ^{ if (block) block(error); });
 	});
@@ -1125,7 +1125,7 @@ static SPSession *sharedSession;
 -(void)setScrobblingUserName:(NSString *)userName password:(NSString *)password forService:(sp_social_provider)service callback:(SPErrorableOperationCallback)block {
 	
 	if (userName.length == 0 || password.length == 0) {
-		if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
+		if (block) block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
 		return;
 	}
 	
@@ -1144,7 +1144,7 @@ static SPSession *sharedSession;
 		
 		NSError *error = nil;
 		if (errorCode != SP_ERROR_OK)
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		dispatch_async(dispatch_get_main_queue(), ^{ if (block) block(out_state, error); });
 	});
@@ -1159,7 +1159,7 @@ static SPSession *sharedSession;
 		
 		NSError *error = nil;
 		if (errorCode != SP_ERROR_OK)
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		dispatch_async(dispatch_get_main_queue(), ^{ if (block) block(out_state, error); });
 	});
@@ -1256,7 +1256,7 @@ static SPSession *sharedSession;
 
 -(void)trackForURL:(NSURL *)url callback:(void (^)(SPTrack *track))block {
 	
-	sp_linktype linkType = [url spotifyLinkType];
+	sp_linktype linkType = [SPURLUncategory spotifyLinkTypeFromURL:url];
 	
 	if (!(linkType == SP_LINKTYPE_TRACK || linkType == SP_LINKTYPE_LOCALTRACK)) {
 		if (block) block(nil);
@@ -1265,7 +1265,7 @@ static SPSession *sharedSession;
 	
 	SPDispatchAsync(^{
 		SPTrack *trackObj = nil;
-		sp_link *link = [url createSpotifyLink];
+		sp_link *link = [SPURLUncategory createSpotifyLinkFromURL:url];
 		if (link != NULL) {
 			sp_track *track = sp_link_as_track(link);
 			sp_track_add_ref(track);
@@ -1280,14 +1280,14 @@ static SPSession *sharedSession;
 
 -(void)userForURL:(NSURL *)url callback:(void (^)(SPUser *user))block {
 	
-	if ([url spotifyLinkType] != SP_LINKTYPE_PROFILE) {
+	if ([SPURLUncategory spotifyLinkTypeFromURL:url] != SP_LINKTYPE_PROFILE) {
 		if (block) block(nil);
 		return;
 	}
 	
 	SPDispatchAsync(^{
 		SPUser *userObj = nil;
-		sp_link *link = [url createSpotifyLink];
+		sp_link *link = [SPURLUncategory createSpotifyLinkFromURL:url];
 		if (link != NULL) {
 			sp_user *aUser = sp_link_as_user(link);
 			sp_user_add_ref(aUser);
@@ -1302,14 +1302,14 @@ static SPSession *sharedSession;
 
 -(void)playlistForURL:(NSURL *)url callback:(void (^)(SPPlaylist *playlist))block {
 	
-	if ([url spotifyLinkType] != SP_LINKTYPE_PLAYLIST) {
+	if ([SPURLUncategory spotifyLinkTypeFromURL:url] != SP_LINKTYPE_PLAYLIST) {
 		if (block) block(nil);
 		return;
 	}
 	
 	SPDispatchAsync(^{
 		SPPlaylist *playlist = nil;
-		sp_link *link = [url createSpotifyLink];
+		sp_link *link = [SPURLUncategory createSpotifyLinkFromURL:url];
 		if (link != NULL) {
 			sp_playlist *aPlaylist = sp_playlist_create(self.session, link);
 			sp_link_release(link);
@@ -1346,8 +1346,8 @@ static SPSession *sharedSession;
 		return nil;
 	}
 
-	sp_linktype aLinkType = [aSpotifyUrlOfSomeKind spotifyLinkType];
-	sp_link *link = [aSpotifyUrlOfSomeKind createSpotifyLink];
+	sp_linktype aLinkType = [SPURLUncategory spotifyLinkTypeFromURL:aSpotifyUrlOfSomeKind];
+	sp_link *link = [SPURLUncategory createSpotifyLinkFromURL:aSpotifyUrlOfSomeKind];
 	id outObj = nil;
 
 	if (aLinkType == SP_LINKTYPE_TRACK || aLinkType == SP_LINKTYPE_LOCALTRACK)
@@ -1392,7 +1392,7 @@ static SPSession *sharedSession;
 		return;
 	}
 	
-	__block sp_linktype linkType = [aSpotifyUrlOfSomeKind spotifyLinkType];
+	__block sp_linktype linkType = [SPURLUncategory spotifyLinkTypeFromURL:aSpotifyUrlOfSomeKind];
 	
 	if (linkType == SP_LINKTYPE_TRACK || linkType == SP_LINKTYPE_LOCALTRACK)
 		[self trackForURL:aSpotifyUrlOfSomeKind callback:^(SPTrack *track) { block(linkType, track); }];
@@ -1507,7 +1507,7 @@ static SPSession *sharedSession;
 			errorCode = sp_session_player_prefetch(self.session, aTrack.track);
 			
 		if (errorCode != SP_ERROR_OK)
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 			
 		dispatch_async(dispatch_get_main_queue(), ^{ if (block) block(error); });
 	});
@@ -1526,7 +1526,7 @@ static SPSession *sharedSession;
 		if (errorCode == SP_ERROR_OK) {
 			dispatch_async(dispatch_get_main_queue(), ^{ self.playing = YES; });
 		} else {
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		}
 		
 		dispatch_async(dispatch_get_main_queue(), ^{ if (block) block(error); });

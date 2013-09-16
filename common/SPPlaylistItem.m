@@ -53,7 +53,7 @@
 		self.playlist = aPlaylist;
 		self.itemIndex = index;
 		if (sp_track_is_placeholder(track)) {
-			[self.playlist.session objectRepresentationForSpotifyURL:[NSURL urlWithSpotifyLink:sp_link_create_from_track(track, 0)]
+			[self.playlist.session objectRepresentationForSpotifyURL:[SPURLUncategory urlWithSpotifyLink:sp_link_create_from_track(track, 0)]
 			 callback:^(sp_linktype linkType, id objectRepresentation) {
 				 self.item = objectRepresentation;
 			 }];
@@ -124,7 +124,7 @@
 }
 
 -(sp_linktype)itemURLType {
-	return [[self.item spotifyURL] spotifyLinkType]; 
+	return [SPURLUncategory spotifyLinkTypeFromURL:[self.item spotifyURL]];
 }
 
 +(NSSet *)keyPathsForValuesAffectingItemClass {

@@ -138,10 +138,10 @@ void search_complete(sp_search *result, void *userdata) {
 		pageSize:(NSInteger)size
 	   inSession:(SPSession *)aSession {
 	
-	if (searchURL != nil && [searchURL spotifyLinkType] == SP_LINKTYPE_SEARCH) {
+	if (searchURL != nil && [SPURLUncategory spotifyLinkTypeFromURL:searchURL] == SP_LINKTYPE_SEARCH) {
 		NSString *linkString = [searchURL absoluteString];
 		return [self initWithSearchQuery:
-				[NSURL urlDecodedStringForString:
+				[SPURLUncategory urlDecodedStringForString:
 				 [linkString stringByReplacingOccurrencesOfString:@"spotify:search:"
 													   withString:@""]]
 								pageSize:size
@@ -259,7 +259,7 @@ void search_complete(sp_search *result, void *userdata) {
 	SPAssertOnLibSpotifyThread();
 	
 	sp_error errorCode = sp_search_error(search);
-	NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+	NSError *error = errorCode == SP_ERROR_OK ? nil : [SPErrorExtensions spotifyErrorWithCode:errorCode];
 	NSString *newSuggestion = nil;
 	NSArray *additionalAlbums = nil;
 	BOOL newHasExhaustedAlbums = NO;
@@ -480,7 +480,7 @@ void search_complete(sp_search *result, void *userdata) {
 		if (self.spotifyURL == nil) {
 			sp_link *searchLink = sp_link_create_from_search(self.activeSearch);
 			if (searchLink != NULL) {
-				NSURL *url = [NSURL urlWithSpotifyLink:searchLink];
+				NSURL *url = [SPURLUncategory urlWithSpotifyLink:searchLink];
 				dispatch_async(dispatch_get_main_queue(), ^() { self.spotifyURL = url; });
 				sp_link_release(searchLink);
 			}

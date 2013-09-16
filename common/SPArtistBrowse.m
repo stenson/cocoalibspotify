@@ -72,7 +72,7 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 		
 		BOOL isLoaded = sp_artistbrowse_is_loaded(result);
 		sp_error errorCode = sp_artistbrowse_error(result);
-		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		NSString *newBio = nil;
 		NSArray *newTracks = nil;

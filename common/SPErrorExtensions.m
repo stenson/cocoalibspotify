@@ -32,16 +32,16 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #import "SPErrorExtensions.h"
 
-@implementation NSError (SCAdditions)
+@implementation SPErrorExtensions
 
 + (NSError *)spotifyErrorWithDescription:(NSString *)msg code:(NSInteger)code {
 	return [NSError errorWithDomain:kCocoaLibSpotifyErrorDomain code:code userInfo:[NSDictionary dictionaryWithObject:msg forKey:NSLocalizedDescriptionKey]];
 }
 + (NSError *)spotifyErrorWithCode:(sp_error)code {
-	return [NSError spotifyErrorWithDescription:[NSString stringWithUTF8String:sp_error_message(code)] code:code];
+	return [SPErrorExtensions spotifyErrorWithDescription:[NSString stringWithUTF8String:sp_error_message(code)] code:code];
 }
 + (NSError *)spotifyErrorWithDescription:(NSString *)msg {
-	return [NSError spotifyErrorWithDescription:msg code:0];
+	return [SPErrorExtensions spotifyErrorWithDescription:msg code:0];
 }
 + (NSError *)spotifyErrorWithCode:(NSInteger)code format:(NSString *)format, ... {
 	va_list src, dest;
@@ -49,7 +49,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	va_copy(dest, src);
 	va_end(src);
 	NSString *msg = [[NSString alloc] initWithFormat:format arguments:dest];
-	return [NSError spotifyErrorWithDescription:msg code:code];
+	return [SPErrorExtensions spotifyErrorWithDescription:msg code:code];
 }
 + (NSError *)spotifyErrorWithFormat:(NSString *)format, ... {
 	va_list src, dest;
@@ -57,7 +57,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	va_copy(dest, src);
 	va_end(src);
 	NSString *msg = [[NSString alloc] initWithFormat:format arguments:dest];
-	return [NSError spotifyErrorWithDescription:msg code:0];
+	return [SPErrorExtensions spotifyErrorWithDescription:msg code:0];
 }
 
 @end

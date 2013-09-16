@@ -32,8 +32,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #import "SPURLExtensions.h"
 
-
-@implementation NSURL (SPURLExtensions)
+@implementation SPURLUncategory
 
 +(NSURL *)urlWithSpotifyLink:(sp_link *)link {
 	
@@ -66,14 +65,15 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	return encoded;
 }
 
--(sp_link *)createSpotifyLink {
-	sp_link *link = sp_link_create_from_string([[self absoluteString] UTF8String]);
++(sp_link *)createSpotifyLinkFromURL:(NSURL *)url
+{
+	sp_link *link = sp_link_create_from_string([[url absoluteString] UTF8String]);
 	return link;
 }
 	
--(sp_linktype)spotifyLinkType {
++(sp_linktype)spotifyLinkTypeFromURL:(NSURL *)url {
 	
-	sp_link *link = [self createSpotifyLink];
+	sp_link *link = [SPURLUncategory createSpotifyLinkFromURL:url];
 	if (link != NULL) {
 		sp_linktype linkType = sp_link_type(link);
 		sp_link_release(link);

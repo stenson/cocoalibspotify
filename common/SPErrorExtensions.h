@@ -37,7 +37,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static NSString * const kCocoaLibSpotifyErrorDomain = @"com.spotify.CocoaLibSpotify.error";
 
-@interface NSError (SPErrorExtensions)
+@interface SPErrorExtensions : NSObject
 
 + (NSError *)spotifyErrorWithDescription:(NSString *)msg code:(NSInteger)code;
 + (NSError *)spotifyErrorWithCode:(sp_error)code;

@@ -92,9 +92,9 @@ static NSString * const kClientUpsellPageURL = @"http://ls.scdn.co/client-upsell
 	web.delegate = self;
 	
 	NSString *params = [NSString stringWithFormat:@"?userAgent=%@&platform=%@&locale=%@",
-						[NSURL urlEncodedStringForString:self.session.userAgent],
-						[NSURL urlEncodedStringForString:[[UIDevice currentDevice] model]],
-						[NSURL urlEncodedStringForString:[[NSLocale currentLocale] objectForKey:NSLocaleLanguageCode]]];
+						[SPURLUncategory urlEncodedStringForString:self.session.userAgent],
+						[SPURLUncategory urlEncodedStringForString:[[UIDevice currentDevice] model]],
+						[SPURLUncategory urlEncodedStringForString:[[NSLocale currentLocale] objectForKey:NSLocaleLanguageCode]]];
 	
 	NSURL *url = [NSURL URLWithString:[kClientUpsellPageURL stringByAppendingString:params]];
 	[web loadRequest:[NSURLRequest requestWithURL:url]];

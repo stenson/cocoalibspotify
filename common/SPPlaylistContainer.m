@@ -401,7 +401,7 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 															  container:self
 															  inSession:self.session];
 		else if (error != NULL)
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		dispatch_async(dispatch_get_main_queue(), ^() { if (block) block(folder, error); });
 		
@@ -415,14 +415,14 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 	else if ([playlistOrFolder isKindOfClass:[SPPlaylist class]])
 		[self removePlaylist:playlistOrFolder callback:block];
 	else if (block)
-		block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
+		block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
 	
 }
 
 -(void)removePlaylist:(SPPlaylist *)aPlaylist callback:(SPErrorableOperationCallback)block {
 	
 	if (aPlaylist == nil)
-		if (block) dispatch_async(dispatch_get_main_queue(), ^{ block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]); });
+		if (block) dispatch_async(dispatch_get_main_queue(), ^{ block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]); });
 	
 	SPDispatchAsync(^{
 		
@@ -431,14 +431,14 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 		if (block)
 			[self.playlistRemoveCallbackStack addObject:block];
 		
-		NSError *error = [NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA];
+		NSError *error = [SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA];
 		
 		for (int currentIndex = 0; currentIndex < playlistCount; currentIndex++) {
 			sp_playlist *playlist = sp_playlistcontainer_playlist(self.container, currentIndex);
 			if (playlist == aPlaylist.playlist) {
 				sp_error errorCode = sp_playlistcontainer_remove_playlist(self.container, currentIndex);
 				if (errorCode != SP_ERROR_OK)
-					error = [NSError spotifyErrorWithCode:errorCode];
+					error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 				else
 					error = nil;
 				break;
@@ -455,7 +455,7 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 -(void)removeFolderFromTree:(SPPlaylistFolder *)aFolder callback:(SPErrorableOperationCallback)block {
 	
 	if (aFolder == nil)
-		if (block) dispatch_async(dispatch_get_main_queue(), ^{ block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]); });
+		if (block) dispatch_async(dispatch_get_main_queue(), ^{ block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]); });
 	
 	SPDispatchAsync(^{
 		
@@ -508,21 +508,21 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 			}
 			
 			if (sourceIndex == NSNotFound) {
-				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]); });
+				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]); });
 				return;
 			}
 			
 			NSInteger destinationIndex = [self indexInFlattenedListForIndex:newIndex inFolder:aParentFolderOrNil];
 			
 			if (destinationIndex == NSNotFound) {
-				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INDEX_OUT_OF_RANGE]); });
+				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INDEX_OUT_OF_RANGE]); });
 				return;
 			}
 			
 			sp_error errorCode = sp_playlistcontainer_move_playlist(self.container, (int)sourceIndex, (int)destinationIndex, false);
 			
 			if (errorCode != SP_ERROR_OK)
-				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([NSError spotifyErrorWithCode:errorCode]); });
+				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([SPErrorExtensions spotifyErrorWithCode:errorCode]); });
 			else if (block)
 				dispatch_async(dispatch_get_main_queue(), ^{ block(nil); });
 		});
@@ -543,21 +543,21 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 			sourceIndex = folderRange.location;
 			
 			if (sourceIndex == NSNotFound) {
-				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]); });
+				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]); });
 				return;
 			}
 			
 			NSInteger destinationIndex = [self indexInFlattenedListForIndex:newIndex inFolder:aParentFolderOrNil];
 			
 			if (destinationIndex == NSNotFound) {
-				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INDEX_OUT_OF_RANGE]); });
+				dispatch_async(dispatch_get_main_queue(), ^{ if (block) block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INDEX_OUT_OF_RANGE]); });
 				return;
 			}
 			
 			for (NSUInteger entriesToMove = folderRange.length; entriesToMove > 0; entriesToMove--) {
 				
 				sp_error errorCode = sp_playlistcontainer_move_playlist(self.container, (int)sourceIndex, (int)destinationIndex, false);
-				NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+				NSError *error = errorCode == SP_ERROR_OK ? nil : [SPErrorExtensions spotifyErrorWithCode:errorCode];
 				
 				if (error) {
 					dispatch_async(dispatch_get_main_queue(), ^() { if (block) block(error); });
@@ -581,7 +581,7 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 		});
 		
 	} else if (block) {
-		block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
+		block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
 	}
 }
 
@@ -591,7 +591,7 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 		playlist.owner == self.session.user ||
 		[self.flattenedPlaylists containsObject:playlist]) {
 
-		if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
+		if (block) block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
 		return;
 	}
 
@@ -606,7 +606,7 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 				dispatch_async(dispatch_get_main_queue(), ^{
 					NSError *error = nil;
 					if (subbedPlaylist == NULL)
-						error = [NSError spotifyErrorWithCode:SP_ERROR_OTHER_PERMANENT];
+						error = [SPErrorExtensions spotifyErrorWithCode:SP_ERROR_OTHER_PERMANENT];
 
 					block(error);
 				});

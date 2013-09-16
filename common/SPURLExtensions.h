@@ -35,13 +35,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #import <Foundation/Foundation.h>
 #import "CocoaLibSpotifyPlatformImports.h"
 
-@interface NSURL (SPURLExtensions)
+@interface SPURLUncategory : NSObject
 
-/** Convert an sp_link from the C LibSpotify API into an NSURL object. 
- 
- @param link The sp_link to convert.
- @return Returns the created NSURL, or `nil` if the link is invalid.
- */
 +(NSURL *)urlWithSpotifyLink:(sp_link *)link;
 
 /** Create an sp_link for the C LibSpotify API from an NSURL object.
@@ -49,7 +44,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  @return The created sp_link, or NULL if the URL is not a valid Spotify URL.
  If not NULL, this _must_ be freed with `sp_link_release()` when you're done.
  */
--(sp_link *)createSpotifyLink;
++(sp_link *)createSpotifyLinkFromURL:(NSURL *)url;
 
 /** Returns the sp_linktype for the C LibSpotify API.
  
@@ -60,14 +55,52 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  - SP_LINKTYPE_ALBUM
  - SP_LINKTYPE_ARTIST
  - SP_LINKTYPE_SEARCH
- - SP_LINKTYPE_PLAYLIST 
- - SP_LINKTYPE_PROFILE 
- - SP_LINKTYPE_STARRED 
+ - SP_LINKTYPE_PLAYLIST
+ - SP_LINKTYPE_PROFILE
+ - SP_LINKTYPE_STARRED
  - SP_LINKTYPE_LOCALTRACK
  */
--(sp_linktype)spotifyLinkType;
++(sp_linktype)spotifyLinkTypeFromURL:(NSURL *)url;
 
 +(NSString *)urlDecodedStringForString:(NSString *)encodedString;
 +(NSString *)urlEncodedStringForString:(NSString *)plainOldString;
 
+
 @end
+
+//@interface NSURL (SPURLExtensions)
+//
+/////** Convert an sp_link from the C LibSpotify API into an NSURL object. 
+//// 
+//// @param link The sp_link to convert.
+//// @return Returns the created NSURL, or `nil` if the link is invalid.
+//// */
+////+(NSURL *)urlWithSpotifyLink:(sp_link *)link;
+////
+/////** Create an sp_link for the C LibSpotify API from an NSURL object.
+//// 
+//// @return The created sp_link, or NULL if the URL is not a valid Spotify URL.
+//// If not NULL, this _must_ be freed with `sp_link_release()` when you're done.
+//// */
+////-(sp_link *)createSpotifyLink;
+////
+/////** Returns the sp_linktype for the C LibSpotify API.
+//// 
+//// Possible values:
+//// 
+//// - SP_LINKTYPE_INVALID
+//// - SP_LINKTYPE_TRACK
+//// - SP_LINKTYPE_ALBUM
+//// - SP_LINKTYPE_ARTIST
+//// - SP_LINKTYPE_SEARCH
+//// - SP_LINKTYPE_PLAYLIST 
+//// - SP_LINKTYPE_PROFILE 
+//// - SP_LINKTYPE_STARRED 
+//// - SP_LINKTYPE_LOCALTRACK
+//// */
+////-(sp_linktype)spotifyLinkType;
+////
+////+(NSString *)urlDecodedStringForString:(NSString *)encodedString;
+////+(NSString *)urlEncodedStringForString:(NSString *)plainOldString;
+//
+//@end

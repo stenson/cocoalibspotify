@@ -115,7 +115,7 @@ static NSMutableDictionary *imageCache;
 
 +(void)imageWithImageURL:(NSURL *)imageURL inSession:(SPSession *)aSession callback:(void (^)(SPImage *image))block {
 	
-	if ([imageURL spotifyLinkType] != SP_LINKTYPE_IMAGE) {
+	if ([SPURLUncategory spotifyLinkTypeFromURL:imageURL] != SP_LINKTYPE_IMAGE) {
 		if (block) block(nil);
 		return;
 	}
@@ -123,7 +123,7 @@ static NSMutableDictionary *imageCache;
 	SPDispatchAsync(^{
 		
 		SPImage *spImage = nil;
-		sp_link *link = [imageURL createSpotifyLink];
+		sp_link *link = [SPURLUncategory createSpotifyLinkFromURL:imageURL];
 		sp_image *image = sp_image_create_from_link(aSession.session, link);
 		
 		if (link != NULL)
@@ -277,7 +277,7 @@ static NSMutableDictionary *imageCache;
 		sp_link *link = sp_link_create_from_image(self.spImage);
 		
 		if (link != NULL) {
-			NSURL *url = [NSURL urlWithSpotifyLink:link];
+			NSURL *url = [SPURLUncategory urlWithSpotifyLink:link];
 			sp_link_release(link);
 			dispatch_async(dispatch_get_main_queue(), ^{
 				self.spotifyURL = url;

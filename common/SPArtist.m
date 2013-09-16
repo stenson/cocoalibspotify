@@ -73,14 +73,14 @@ static NSMutableDictionary *artistCache;
 
 +(void)artistWithArtistURL:(NSURL *)aURL inSession:(SPSession *)aSession callback:(void (^)(SPArtist *artist))block {
 	
-	if ([aURL spotifyLinkType] != SP_LINKTYPE_ARTIST) {
+	if ([SPURLUncategory spotifyLinkTypeFromURL:aURL] != SP_LINKTYPE_ARTIST) {
 		if (block) block(nil);
 		return;
 	}
 	
 	SPDispatchAsync(^{
 		SPArtist *newArtist = nil;
-		sp_link *link = [aURL createSpotifyLink];
+		sp_link *link = [SPURLUncategory createSpotifyLinkFromURL:aURL];
 		if (link != NULL) {
 			sp_artist *artist = sp_link_as_artist(link);
 			sp_artist_add_ref(artist);
@@ -103,7 +103,7 @@ static NSMutableDictionary *artistCache;
         sp_artist_add_ref(self.artist);
         sp_link *link = sp_link_create_from_artist(anArtist);
         if (link != NULL) {
-            self.spotifyURL = [NSURL urlWithSpotifyLink:link];
+            self.spotifyURL = [SPURLUncategory urlWithSpotifyLink:link];
             sp_link_release(link);
         }
 		

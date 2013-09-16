@@ -153,7 +153,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 	sp_link *link = sp_link_create_from_track(self.track, 0);
 	if (link != NULL) {
-		trackURL = [NSURL urlWithSpotifyLink:link];
+		trackURL = [SPURLUncategory urlWithSpotifyLink:link];
 		sp_link_release(link);
 	}
 	

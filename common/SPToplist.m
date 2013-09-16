@@ -68,7 +68,7 @@ void toplistbrowse_tracks_complete(sp_toplistbrowse *result, void *userdata) {
 		
 		BOOL tracksAreLoaded = sp_toplistbrowse_is_loaded(result);
 		sp_error errorCode = sp_toplistbrowse_error(result);
-		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		NSArray *newTracks = nil;
 		
 		if (tracksAreLoaded) {
@@ -102,7 +102,7 @@ void toplistbrowse_artists_complete(sp_toplistbrowse *result, void *userdata) {
 		
 		BOOL artistsAreLoaded = sp_toplistbrowse_is_loaded(result);
 		sp_error errorCode = sp_toplistbrowse_error(result);
-		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		NSArray *newArtists = nil;
 		
 		if (artistsAreLoaded) {
@@ -136,7 +136,7 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 		
 		BOOL albumsAreLoaded = sp_toplistbrowse_is_loaded(result);
 		sp_error errorCode = sp_toplistbrowse_error(result);
-		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		NSArray *newAlbums = nil;
 		
 		if (albumsAreLoaded) {

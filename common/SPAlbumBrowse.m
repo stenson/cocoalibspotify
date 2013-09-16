@@ -77,7 +77,7 @@ void albumbrowse_complete (sp_albumbrowse *result, void *userdata) {
 		BOOL isLoaded = sp_albumbrowse_is_loaded(result);
 		
 		sp_error errorCode = sp_albumbrowse_error(result);
-		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		NSString *newReview = nil;
 		SPArtist *newArtist = nil;
 		NSArray *newTracks = nil;

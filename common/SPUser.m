@@ -111,7 +111,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		
 		sp_link *link = sp_link_create_from_user(self.user);
 		if (link != NULL) {
-			url = [NSURL urlWithSpotifyLink:link];
+			url = [SPURLUncategory urlWithSpotifyLink:link];
 			sp_link_release(link);
 		}
 		

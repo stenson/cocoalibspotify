@@ -84,14 +84,14 @@ static NSMutableDictionary *albumCache;
 
 +(void)albumWithAlbumURL:(NSURL *)aURL inSession:(SPSession *)aSession callback:(void (^)(SPAlbum *album))block {
 	
-	if ([aURL spotifyLinkType] != SP_LINKTYPE_ALBUM) {
+	if ([SPURLUncategory spotifyLinkTypeFromURL:aURL] != SP_LINKTYPE_ALBUM) {
 		if (block) block(nil);
 		return;
 	}
 	
 	SPDispatchAsync(^{
 		SPAlbum *newAlbum = nil;
-		sp_link *link = [aURL createSpotifyLink];
+		sp_link *link = [SPURLUncategory createSpotifyLinkFromURL:aURL];
 		if (link != NULL) {
 			sp_album *album = sp_link_as_album(link);
 			sp_album_add_ref(album);
@@ -113,7 +113,7 @@ static NSMutableDictionary *albumCache;
         self.session = aSession;
         sp_link *link = sp_link_create_from_album(anAlbum);
         if (link != NULL) {
-            self.spotifyURL = [NSURL urlWithSpotifyLink:link];
+            self.spotifyURL = [SPURLUncategory urlWithSpotifyLink:link];
             sp_link_release(link);
         }
 

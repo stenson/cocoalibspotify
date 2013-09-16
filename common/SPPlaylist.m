@@ -617,7 +617,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 		
 		sp_link *link = sp_link_create_from_playlist(self.playlist);
 		if (link != NULL) {
-			newURL = [NSURL urlWithSpotifyLink:link];
+			newURL = [SPURLUncategory urlWithSpotifyLink:link];
 			sp_link_release(link);
 		}
 		
@@ -808,7 +808,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 		
 		if (newItems.count == 0) {
 			dispatch_async(dispatch_get_main_queue(), ^{
-				if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
+				if (block) block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
 			});
 			return;
 		}
@@ -841,7 +841,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 		
 		NSError *error = nil;
 		if (errorCode != SP_ERROR_OK)
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		if (error && block) {
 			[self.addCallbackStack removeObject:block];
@@ -863,7 +863,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 		
 		NSError *error = nil;
 		if (errorCode != SP_ERROR_OK)
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		if (error && block) {
 			[self.removeCallbackStack removeObject:block];
@@ -894,7 +894,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 		
 		NSError *error = nil;
 		if (errorCode != SP_ERROR_OK)
-			error = [NSError spotifyErrorWithCode:errorCode];
+			error = [SPErrorExtensions spotifyErrorWithCode:errorCode];
 		
 		if (error && block) {
 			[self.moveCallbackStack removeObject:block];

@@ -124,7 +124,7 @@ static void * const kSPPlaybackManagerKVOContext = @"kSPPlaybackManagerKVOContex
 	[self.audioController clearAudioBuffers];
 	
 	if (aTrack.availability != SP_TRACK_AVAILABILITY_AVAILABLE) {
-		if (block) block([NSError spotifyErrorWithCode:SP_ERROR_TRACK_NOT_PLAYABLE]);
+		if (block) block([SPErrorExtensions spotifyErrorWithCode:SP_ERROR_TRACK_NOT_PLAYABLE]);
 		self.currentTrack = nil;
 	}
 		
