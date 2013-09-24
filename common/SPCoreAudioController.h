@@ -126,4 +126,7 @@
 /** Returns the receiver's delegate. */
 @property (readwrite, nonatomic, assign) __unsafe_unretained id <SPCoreAudioControllerDelegate> delegate;
 
+/** add a custom AURenderCallback for processing */
+@property (readwrite, nonatomic) AURenderCallbackStruct customDSPCallbackStruct;
+
 @end

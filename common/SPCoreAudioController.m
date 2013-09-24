@@ -459,6 +459,8 @@ static void fillWithError(NSError **mayBeAnError, NSString *localizedDescription
     
 }
 
+@synthesize customDSPCallbackStruct = customDSPCallbackStruct;
+
 static OSStatus AudioUnitRenderDelegateCallback(void *inRefCon,
 												AudioUnitRenderActionFlags *ioActionFlags,
 												const AudioTimeStamp *inTimeStamp,
@@ -479,6 +481,8 @@ static OSStatus AudioUnitRenderDelegateCallback(void *inRefCon,
     }
     
     buffer->mDataByteSize = (UInt32)[self.audioBuffer readDataOfLength:bytesRequired intoAllocatedBuffer:&buffer->mData];
+    
+    self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
     
 	self->framesSinceLastTimeUpdate += inNumberFrames;
 	
