@@ -176,6 +176,20 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
     }
 }
 
+static void CheckError(OSStatus error, const char *operation)
+{
+	if (error == noErr) return;
+	char str[20];
+	*(UInt32 *)(str + 1) = CFSwapInt32HostToBig(error);
+	if (isprint(str[1]) && isprint(str[2]) && isprint(str[3]) && isprint(str[4])) {
+		str[0] = str[5] = '\'';
+		str[6] = '\0';
+	} else {
+		sprintf(str, "%d", (int)error);
+    }
+	fprintf(stderr, "Error: %s (%s)\n", operation, str);
+}
+
 -(void)applyAudioStreamDescriptionToInputUnit:(AudioStreamBasicDescription)newInputDescription {
 	
 	if (audioProcessingGraph == NULL || inputConverterUnit == NULL)
@@ -187,6 +201,7 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 								  0,
 								  &newInputDescription,
 								  sizeof(newInputDescription));
+    
 	if (status != noErr) {
 		NSError *error;
         fillWithError(&error, @"Couldn't set input format", status);
@@ -196,6 +211,24 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 		[self clearAudioBuffers];
 		self.audioBuffer = [[SPCircularBuffer alloc] initWithMaximumLength:(newInputDescription.mBytesPerFrame * newInputDescription.mSampleRate) * kTargetBufferLength];
 	}
+    
+    AudioStreamBasicDescription asbd;
+    memset(&asbd, 0, sizeof(asbd));
+    
+    size_t bytesPerSample = sizeof(Float32);
+    
+    asbd.mFormatID          = kAudioFormatLinearPCM;
+    asbd.mFormatFlags       = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
+    asbd.mBytesPerPacket    = 2 * bytesPerSample;
+    asbd.mFramesPerPacket   = 1;
+    asbd.mBytesPerFrame     = asbd.mBytesPerPacket * asbd.mFramesPerPacket;
+    asbd.mChannelsPerFrame  = 2;
+    asbd.mBitsPerChannel    = 8 * bytesPerSample;
+    asbd.mSampleRate        = newInputDescription.mSampleRate;
+    
+    CheckError(AudioUnitSetProperty(outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof(asbd)), "rio input");
+    
+    CheckError(AudioUnitSetProperty(inputConverterUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof(asbd)), "converter output");
 }
 
 #pragma mark -
@@ -374,15 +407,26 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
         return NO;
     }
 	
-	// Connect mixer to output
-	status = AUGraphConnectNodeInput(audioProcessingGraph, mixerNode, 0, outputNode, 0);
-	if (status != noErr) {
-        fillWithError(err, @"Couldn't connect mixer to output", status);
-        return NO;
-    }
+//	// Connect mixer to output
+//	status = AUGraphConnectNodeInput(audioProcessingGraph, mixerNode, 0, outputNode, 0);
+//	if (status != noErr) {
+//        fillWithError(err, @"Couldn't connect mixer to output", status);
+//        return NO;
+//    }
+
+
+    AudioUnitAddRenderNotify(outputUnit, RemoteIORenderCallback, (__bridge void *)self);
+    
+    AURenderCallbackStruct rioCallback;
+    rioCallback.inputProc = RemoteIORenderCallback;
+    rioCallback.inputProcRefCon = (__bridge void *)(self);
+    CheckError(AUGraphSetNodeInputCallback(audioProcessingGraph, outputNode, 0, &rioCallback), "custom callback");
+    
+//
+//    CheckError(AudioUnitSetProperty(outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, 0, &rioCallback, sizeof(rioCallback)), "set render callback");
 	
-	if (![self connectOutputBus:0 ofNode:inputConverterNode toInputBus:0 ofNode:mixerNode inGraph:audioProcessingGraph error:err])
-		return NO;
+	//if (![self connectOutputBus:0 ofNode:inputConverterNode toInputBus:0 ofNode:outputNode inGraph:audioProcessingGraph error:err])
+	//	return NO;
 	
 	// Set render callback
 	AURenderCallbackStruct rcbs;
@@ -394,6 +438,8 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
         fillWithError(err, @"Couldn't add render callback", status);
         return NO;
     }
+
+    //CheckError(AUGraphSetNodeInputCallback(audioProcessingGraph, outputNode, 0, &customDSPCallbackStruct), "custom callback");
 	
 	// Finally, set the kAudioUnitProperty_MaximumFramesPerSlice of each unit 
 	// to 4096, to allow playback on iOS when the screen is locked.
@@ -417,6 +463,8 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 		fillWithError(err, @"Couldn't set max frames per slice on output", status);
         return NO;
 	}
+    
+    [self applyAudioStreamDescriptionToInputUnit:inputFormat];
 	
 	// Init Queue
 	status = AUGraphInitialize(audioProcessingGraph);
@@ -429,7 +477,6 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 	
 	// Apply properties and let's get going!
     [self startAudioQueue];
-	[self applyAudioStreamDescriptionToInputUnit:inputFormat];
     [self applyVolumeToMixerAudioUnit:self.volume];
 	
     return YES;
@@ -461,6 +508,39 @@ static void fillWithError(NSError **mayBeAnError, NSString *localizedDescription
 
 @synthesize customDSPCallbackStruct = customDSPCallbackStruct;
 
+static OSStatus RemoteIORenderCallback(void *inRefCon,
+                                       AudioUnitRenderActionFlags *ioActionFlags,
+                                       const AudioTimeStamp *inTimeStamp,
+                                       UInt32 inBusNumber,
+                                       UInt32 inNumberFrames,
+                                       AudioBufferList *ioData)
+{
+//    if (*ioActionFlags & kAudioUnitRenderAction_PreRender) {
+//        Float32 *outSample = (Float32 *)ioData->mBuffers[0].mData;
+//        memset(outSample, 0, inNumberFrames * sizeof(Float32) * 2);
+//        //outSample[100] = 0.f;
+//        //printf("floats %f\n", outSample[100]);
+//    }
+    
+//    if (*ioActionFlags & kAudioUnitRenderAction_PreRender) {
+//        printf("pre\n");
+//    } else {
+//        printf("post\n");
+//    }
+//    
+//    printf("floats\n");
+    
+    if (YES) {
+        SPCoreAudioController *self = (__bridge SPCoreAudioController *)inRefCon;
+        OSStatus rendered = AudioUnitRender(self->inputConverterUnit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
+        if (rendered == noErr) {
+            self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
+        }
+    }
+    
+    return noErr;
+}
+
 static OSStatus AudioUnitRenderDelegateCallback(void *inRefCon,
 												AudioUnitRenderActionFlags *ioActionFlags,
 												const AudioTimeStamp *inTimeStamp,
@@ -470,6 +550,8 @@ static OSStatus AudioUnitRenderDelegateCallback(void *inRefCon,
 	
     SPCoreAudioController *self = (__bridge SPCoreAudioController *)inRefCon;
 	
+    printf("ints\n");
+    
 	AudioBuffer *buffer = &(ioData->mBuffers[0]);
 	UInt32 bytesRequired = buffer->mDataByteSize;
 	
@@ -480,9 +562,11 @@ static OSStatus AudioUnitRenderDelegateCallback(void *inRefCon,
 		return noErr;
     }
     
-    buffer->mDataByteSize = (UInt32)[self.audioBuffer readDataOfLength:bytesRequired intoAllocatedBuffer:&buffer->mData];
+    buffer->mDataByteSize = (Float32)[self.audioBuffer readDataOfLength:bytesRequired intoAllocatedBuffer:&buffer->mData];
     
-    self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
+    
+    
+    //self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
     
 	self->framesSinceLastTimeUpdate += inNumberFrames;
 	
