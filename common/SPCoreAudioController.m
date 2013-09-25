@@ -49,12 +49,12 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 	
 	AUGraph audioProcessingGraph;
 	AudioUnit outputUnit;
-	AudioUnit mixerUnit;
+	//AudioUnit mixerUnit;
 	AudioUnit inputConverterUnit;
 	
 	AUNode outputNode;
 	AUNode inputConverterNode;
-	AUNode mixerNode;
+	//AUNode mixerNode;
 	
 	UInt32 framesSinceLastTimeUpdate;
 	
@@ -159,21 +159,21 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 
 -(void)applyVolumeToMixerAudioUnit:(double)vol {
     
-    if (audioProcessingGraph == NULL || mixerUnit == NULL)
-        return;
-	
-	OSErr status = AudioUnitSetParameter(mixerUnit,
-										 kMultiChannelMixerParam_Volume,
-										 kAudioUnitScope_Output, 
-										 0,
-										 vol * vol * vol,
-										 0);
-	
-	if (status != noErr) {
-		NSError *error;
-        fillWithError(&error, @"Couldn't set input format", status);
-		NSLog(@"[%@ %@]: %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), error);
-    }
+//    if (audioProcessingGraph == NULL || mixerUnit == NULL)
+//        return;
+//	
+//	OSErr status = AudioUnitSetParameter(mixerUnit,
+//										 kMultiChannelMixerParam_Volume,
+//										 kAudioUnitScope_Output, 
+//										 0,
+//										 vol * vol * vol,
+//										 0);
+//	
+//	if (status != noErr) {
+//		NSError *error;
+//        fillWithError(&error, @"Couldn't set input format", status);
+//		NSLog(@"[%@ %@]: %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), error);
+//    }
 }
 
 static void CheckError(OSStatus error, const char *operation)
@@ -284,7 +284,7 @@ static void CheckError(OSStatus error, const char *operation)
 	
 	audioProcessingGraph = NULL;
 	outputUnit = NULL;
-	mixerUnit = NULL;
+//	mixerUnit = NULL;
 	inputConverterUnit = NULL;
 }
 
@@ -365,34 +365,34 @@ static void CheckError(OSStatus error, const char *operation)
         return NO;
     }
 	
-	// Add mixer
-	status = AUGraphAddNode(audioProcessingGraph, &mixerDescription, &mixerNode);
-	if (status != noErr) {
-        fillWithError(err, @"Couldn't add mixer node", status);
-        return NO;
-    }
-	
-	// Get mixer unit so we can change volume etc
-	status = AUGraphNodeInfo(audioProcessingGraph, mixerNode, NULL, &mixerUnit);
-	if (status != noErr) {
-        fillWithError(err, @"Couldn't get mixer unit", status);
-        return NO;
-    }
-	
-	// Set mixer bus count
-	UInt32 busCount = 1;
-	status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof(busCount));
-	if (status != noErr) {
-        fillWithError(err, @"Couldn't set mixer bus count", status);
-        return NO;
-    }
-	
-	// Set mixer input volume
-	status = AudioUnitSetParameter(mixerUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, 0, 1.0, 0);
-	if (status != noErr) {
-        fillWithError(err, @"Couldn't set mixer volume", status);
-        return NO;
-    }
+//	// Add mixer
+//	status = AUGraphAddNode(audioProcessingGraph, &mixerDescription, &mixerNode);
+//	if (status != noErr) {
+//        fillWithError(err, @"Couldn't add mixer node", status);
+//        return NO;
+//    }
+//	
+//	// Get mixer unit so we can change volume etc
+//	status = AUGraphNodeInfo(audioProcessingGraph, mixerNode, NULL, &mixerUnit);
+//	if (status != noErr) {
+//        fillWithError(err, @"Couldn't get mixer unit", status);
+//        return NO;
+//    }
+//	
+//	// Set mixer bus count
+//	UInt32 busCount = 1;
+//	status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof(busCount));
+//	if (status != noErr) {
+//        fillWithError(err, @"Couldn't set mixer bus count", status);
+//        return NO;
+//    }
+//	
+//	// Set mixer input volume
+//	status = AudioUnitSetParameter(mixerUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, 0, 1.0, 0);
+//	if (status != noErr) {
+//        fillWithError(err, @"Couldn't set mixer volume", status);
+//        return NO;
+//    }
 	
 	// Create PCM converter
 	status = AUGraphAddNode(audioProcessingGraph, &converterDescription, &inputConverterNode);
@@ -406,14 +406,6 @@ static void CheckError(OSStatus error, const char *operation)
         fillWithError(err, @"Couldn't get input unit", status);
         return NO;
     }
-	
-//	// Connect mixer to output
-//	status = AUGraphConnectNodeInput(audioProcessingGraph, mixerNode, 0, outputNode, 0);
-//	if (status != noErr) {
-//        fillWithError(err, @"Couldn't connect mixer to output", status);
-//        return NO;
-//    }
-
 
     AudioUnitAddRenderNotify(outputUnit, RemoteIORenderCallback, (__bridge void *)self);
     
@@ -421,14 +413,8 @@ static void CheckError(OSStatus error, const char *operation)
     rioCallback.inputProc = RemoteIORenderCallback;
     rioCallback.inputProcRefCon = (__bridge void *)(self);
     CheckError(AUGraphSetNodeInputCallback(audioProcessingGraph, outputNode, 0, &rioCallback), "custom callback");
-    
-//
-//    CheckError(AudioUnitSetProperty(outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, 0, &rioCallback, sizeof(rioCallback)), "set render callback");
 	
-	//if (![self connectOutputBus:0 ofNode:inputConverterNode toInputBus:0 ofNode:outputNode inGraph:audioProcessingGraph error:err])
-	//	return NO;
-	
-	// Set render callback
+	// Set render callback for pre-inputConverter
 	AURenderCallbackStruct rcbs;
 	rcbs.inputProc = AudioUnitRenderDelegateCallback;
 	rcbs.inputProcRefCon = (__bridge void *)(self);
@@ -438,8 +424,6 @@ static void CheckError(OSStatus error, const char *operation)
         fillWithError(err, @"Couldn't add render callback", status);
         return NO;
     }
-
-    //CheckError(AUGraphSetNodeInputCallback(audioProcessingGraph, outputNode, 0, &customDSPCallbackStruct), "custom callback");
 	
 	// Finally, set the kAudioUnitProperty_MaximumFramesPerSlice of each unit 
 	// to 4096, to allow playback on iOS when the screen is locked.
@@ -452,11 +436,11 @@ static void CheckError(OSStatus error, const char *operation)
         return NO;
 	}
 	
-	status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFramesPerSlice, sizeof(maxFramesPerSlice));
-	if (status != noErr) {
-		fillWithError(err, @"Couldn't set max frames per slice on mixer", status);
-        return NO;
-	}
+//	status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFramesPerSlice, sizeof(maxFramesPerSlice));
+//	if (status != noErr) {
+//		fillWithError(err, @"Couldn't set max frames per slice on mixer", status);
+//        return NO;
+//	}
 	
 	status = AudioUnitSetProperty(outputUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFramesPerSlice, sizeof(maxFramesPerSlice));
 	if (status != noErr) {
@@ -516,11 +500,15 @@ static OSStatus RemoteIORenderCallback(void *inRefCon,
                                        AudioBufferList *ioData)
 {
     SPCoreAudioController *self = (__bridge SPCoreAudioController *)inRefCon;
+    
     OSStatus rendered = AudioUnitRender(self->inputConverterUnit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
     if (rendered == noErr) {
-        self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
+        if (*ioActionFlags & kAudioUnitRenderAction_OutputIsSilence) {
+            return noErr;
+        } else {
+            self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
+        }
     }
-    
     return noErr;
 }
 
@@ -544,10 +532,6 @@ static OSStatus AudioUnitRenderDelegateCallback(void *inRefCon,
     }
     
     buffer->mDataByteSize = (Float32)[self.audioBuffer readDataOfLength:bytesRequired intoAllocatedBuffer:&buffer->mData];
-    
-    
-    
-    //self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
     
 	self->framesSinceLastTimeUpdate += inNumberFrames;
 	
