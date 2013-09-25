@@ -515,27 +515,10 @@ static OSStatus RemoteIORenderCallback(void *inRefCon,
                                        UInt32 inNumberFrames,
                                        AudioBufferList *ioData)
 {
-//    if (*ioActionFlags & kAudioUnitRenderAction_PreRender) {
-//        Float32 *outSample = (Float32 *)ioData->mBuffers[0].mData;
-//        memset(outSample, 0, inNumberFrames * sizeof(Float32) * 2);
-//        //outSample[100] = 0.f;
-//        //printf("floats %f\n", outSample[100]);
-//    }
-    
-//    if (*ioActionFlags & kAudioUnitRenderAction_PreRender) {
-//        printf("pre\n");
-//    } else {
-//        printf("post\n");
-//    }
-//    
-//    printf("floats\n");
-    
-    if (YES) {
-        SPCoreAudioController *self = (__bridge SPCoreAudioController *)inRefCon;
-        OSStatus rendered = AudioUnitRender(self->inputConverterUnit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
-        if (rendered == noErr) {
-            self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
-        }
+    SPCoreAudioController *self = (__bridge SPCoreAudioController *)inRefCon;
+    OSStatus rendered = AudioUnitRender(self->inputConverterUnit, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
+    if (rendered == noErr) {
+        self->customDSPCallbackStruct.inputProc(self->customDSPCallbackStruct.inputProcRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData);
     }
     
     return noErr;
@@ -549,8 +532,6 @@ static OSStatus AudioUnitRenderDelegateCallback(void *inRefCon,
 												AudioBufferList *ioData) {
 	
     SPCoreAudioController *self = (__bridge SPCoreAudioController *)inRefCon;
-	
-    printf("ints\n");
     
 	AudioBuffer *buffer = &(ioData->mBuffers[0]);
 	UInt32 bytesRequired = buffer->mDataByteSize;
