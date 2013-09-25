@@ -129,4 +129,7 @@
 /** add a custom AURenderCallback for processing */
 @property (readwrite, nonatomic) AURenderCallbackStruct customDSPCallbackStruct;
 
+/** the audio description currently used for output to the device */
+@property (readwrite, nonatomic) AudioStreamBasicDescription outputAudioDescription;
+
 @end

@@ -226,6 +226,8 @@ static void CheckError(OSStatus error, const char *operation)
     asbd.mBitsPerChannel    = 8 * bytesPerSample;
     asbd.mSampleRate        = newInputDescription.mSampleRate;
     
+    self.outputAudioDescription = asbd;
+    
     CheckError(AudioUnitSetProperty(outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof(asbd)), "rio input");
     
     CheckError(AudioUnitSetProperty(inputConverterUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof(asbd)), "converter output");
